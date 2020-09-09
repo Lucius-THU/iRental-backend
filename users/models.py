@@ -22,11 +22,11 @@ class User(models.Model):
         })
 
     @classmethod
-    def from_session(cls, session):
-        if session is None:
+    def load(cls, session):
+        try:
+            return cls.objects.get(pk=session['user_id'])
+        except BaseException:
             return None
-        pk = session.get_decoded()['user_id']
-        return cls.objects.filter(pk=pk).first()
 
     def __str__(self):
         return self.email
@@ -34,3 +34,11 @@ class User(models.Model):
     def authenticate(self, password):
         pw = password.encode('utf-8')
         return bcrypt.checkpw(pw, self.password)
+
+    def in_group(self, group):
+        groups = []
+        for g in ['admin', 'provider', 'user']:
+            groups.append(g)
+            if group == g:
+                return self.group in groups
+        return False
