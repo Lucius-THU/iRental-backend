@@ -1,5 +1,5 @@
 from django.http import HttpResponse, JsonResponse
-from common import require
+from common import *
 from .models import User
 
 

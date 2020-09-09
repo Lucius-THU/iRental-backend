@@ -1,6 +1,6 @@
 import json
 from collections import defaultdict
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 
 
 class JsonMiddleware:
@@ -12,6 +12,8 @@ class JsonMiddleware:
             request.params = json.loads(request.body, **{
                 'object_hook': lambda d: defaultdict(lambda: None, d)
             })
+        elif request.method == 'POST':
+            return HttpResponse(status=400)
         return self.get_response(request)
 
 
@@ -22,5 +24,5 @@ class ExceptionMiddleware:
     def __call__(self, request):
         return self.get_response(request)
 
-    def process_exception(request, exception):
+    def process_exception(self, request, exception):
         return JsonResponse({'error': str(exception)})
