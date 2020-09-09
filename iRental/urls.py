@@ -1,8 +1,12 @@
 from django.urls import include, path
 
-urlpatterns = [
+apipatterns = [
     path('', include('users.urls.auth')),
-    path('api/equipment', include('equipment.urls')),
-    # path('api/requests', include('reqs.urls')),
-    # path('api/records', include('records.urls')),
+    path('equipment', include('equipment.urls')),
+    # path('requests', include('reqs.urls')),
+    # path('records', include('records.urls')),
+]
+
+urlpatterns = [
+    path('api/', include(apipatterns))
 ]
