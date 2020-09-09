@@ -13,3 +13,4 @@ class Equipment(models.Model):
     address = models.CharField(max_length=255)
     expire_at = models.DateTimeField()
     launched = models.BooleanField(default=False)
+    requesting = models.BooleanField(default=False)

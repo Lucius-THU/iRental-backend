@@ -9,6 +9,7 @@ class RentalRequest(models.Model):
     purpose = models.TextField()
     expire_at = models.DateTimeField()
     approved = models.BooleanField(default=False)
+    rejected = models.BooleanField(default=False)
 
 
 class ProviderRequest(models.Model):
