@@ -1,6 +1,6 @@
 import functools
 from django.http import HttpResponse, JsonResponse
-from .models import User
+from users.models import User
 
 
 def require(method, group = 'user'):

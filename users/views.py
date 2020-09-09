@@ -1,6 +1,6 @@
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
+from common import require
 from .models import User
-from .utils import require
 
 
 @require('post', None)
@@ -10,7 +10,7 @@ def login(request):
     if user and user.authenticate(params['password']):
         request.session['user_id'] = user.id
         return JsonResponse({'user_id': user.id})
-    return JsonResponse({'error': 'failed'})
+    return HttpResponse(status=400)
 
 
 @require('post', 'user')
