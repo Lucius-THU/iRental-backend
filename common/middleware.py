@@ -12,8 +12,8 @@ class JsonMiddleware:
             request.params = json.loads(request.body, **{
                 'object_hook': lambda d: defaultdict(lambda: None, d)
             })
-        elif request.method == 'POST':
-            return HttpResponse(status=400)
+        # elif request.method == 'POST':
+        #     return HttpResponse(status=400)
         return self.get_response(request)
 
 
