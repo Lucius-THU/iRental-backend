@@ -1,11 +1,11 @@
 import dateutil.parser as dtparser
-from django.http import HttpResponse, HttpRequest, JsonResponse
+from django.http import JsonResponse
 from django.db.models import Q
 from shared import *
 from .models import Equipment
 
 
-def get_equipment(request, id):
+def get_equipment_set(request, id):
     user = request.user
     q = Q(id=id)
     if not user.isadmin():
@@ -14,14 +14,13 @@ def get_equipment(request, id):
 
 
 @require('get', 'user')
-def index(request):
+def query(request):
     params = request.GET
-    q = {}
-    for key in ['name', 'id', 'user_id', 'provider_id']:
-        if key in params:
-            q[key] = params[key]
-    q = Q(**q)
     user = request.user
+    q = Q()
+    for k, v in params.items():
+        if k in ['name', 'id', 'user_id', 'provider_id']:
+            q &= Q(**{k: v})
     if not user.isprovider():
         q &= Q(launched=True)
     elif not user.isadmin():
@@ -42,11 +41,11 @@ def index(request):
 
 @require('post', 'provider')
 def create(request):
-    data = request.params
+    params = request.params
     e = Equipment.objects.create(**{
-        'name': data['name'],
-        'address': data['address'],
-        'expire_at': dtparser.parse(data['expire_at', str]),
+        'name': params['name'],
+        'address': params['address'],
+        'expire_at': dtparser.parse(params['expire_at', str]),
         'provider': request.user
     })
     return JsonResponse(modeltodict(e))
@@ -54,24 +53,24 @@ def create(request):
 
 @require('post', 'provider')
 def update(request, id):
-    data = request.POST
-    equipment_set = get_equipment(request, id)
+    params = request.POST
+    equipment_set = get_equipment_set(request, id)
     if len(equipment_set) == 0:
         raise ValueError('The equipment does not exist')
     else:
-        if 'name' in data:
-            equipment_set[0].name = data['name']
-        if 'address' in data:
-            equipment_set[0].address = data['address']
-        if 'expired_at' in data:
-            equipment_set[0].expired_at = data['expired_at']
+        if 'name' in params:
+            equipment_set[0].name = params['name']
+        if 'address' in params:
+            equipment_set[0].address = params['address']
+        if 'expired_at' in params:
+            equipment_set[0].expired_at = params['expired_at']
         equipment_set[0].save()
     return JsonResponse({})
 
 
 @require('post', 'provider')
 def delete(request, id):
-    equipment_set = get_equipment(request, id)
+    equipment_set = get_equipment_set(request, id)
     if len(equipment_set) == 0:
         raise ValueError('The equipment does not exist')
     else:
@@ -81,7 +80,7 @@ def delete(request, id):
 
 @require('post', 'provider')
 def request(request, id):
-    equipment_set = get_equipment(request, id)
+    equipment_set = get_equipment_set(request, id)
     if len(equipment_set) == 0:
         raise ValueError('The equipment does not exist')
     else:
@@ -92,7 +91,7 @@ def request(request, id):
 
 @require('post', 'provider')
 def discontinue(request, id):
-    equipment_set = get_equipment(request, id)
+    equipment_set = get_equipment_set(request, id)
     if len(equipment_set) == 0:
         raise ValueError('The equipment does not exist')
     else:
@@ -103,7 +102,7 @@ def discontinue(request, id):
 
 @require('post', 'admin')
 def launch(request, id):
-    equipment_set = get_equipment(request, id)
+    equipment_set = get_equipment_set(request, id)
     if len(equipment_set) == 0:
         raise ValueError('The equipment does not exist')
     else:
@@ -114,7 +113,7 @@ def launch(request, id):
 
 # This should be in requests/rental/<id>/update
 # def rent(request, id, user):
-#     equipment_set = get_equipment(request, id)
+#     equipment_set = get_equipment_set(request, id)
 #     if len(equipment_set) == 0:
 #         raise ValueError('The equipment does not exist')
 #     else:

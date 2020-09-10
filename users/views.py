@@ -34,12 +34,13 @@ def index(request):
     params = request.GET
     page = params.get('page')
     size = params.get('size')
+    users = User.objects.all()
     if page or size:
         page = int(page or 1)
         size = int(size or 10)
-    users = User.objects.all()[(page - 1) * size: page * size]
+        users = users[(page - 1) * size: page * size]
     return JsonResponse({
-        'list': list(map(User.todict, result))
+        'list': list(map(User.todict, users))
     })
 
 
@@ -66,7 +67,7 @@ def update(request, id):
                 if v in ['user', 'provider']:
                     user.group = v
     user.save()
-    return JsonResponse(user.todict())
+    return JsonResponse({})
 
 
 @require('post', 'admin')
