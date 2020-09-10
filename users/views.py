@@ -57,15 +57,14 @@ def detail(request, id):
 
 @require('post', 'user')
 def update(request, id):
-    params = request.params
     user = User.objects.get(id=id)
-    for k in ['name', 'address', 'contact']:
-        if k in params:
-            setattr(user, k, params[k])
-    if request.user.isadmin() and not user.isadmin():
-        group = params['group']
-        if group in ['user', 'provider']:
-            user.group = group
+    for k, v in request.params.items():
+        if k in ['name', 'address', 'contact']:
+            setattr(user, k, v)
+        elif k == 'group':
+            if request.user.isadmin() and not user.isadmin():
+                if v in ['user', 'provider']:
+                    user.group = v
     user.save()
     return JsonResponse(user.todict())
 

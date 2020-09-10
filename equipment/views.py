@@ -46,7 +46,7 @@ def create(request):
     e = Equipment.objects.create(**{
         'name': data['name'],
         'address': data['address'],
-        'expire_at': dtparser.parse(data['expire_at']),
+        'expire_at': dtparser.parse(data['expire_at', str]),
         'provider': request.user
     })
     return JsonResponse(modeltodict(e))
