@@ -10,7 +10,7 @@ def signup(request):
         'email': params['email'],
         'password': params['password']
     })
-    return JsonResponse({'user_id': user.id})
+    return JsonResponse({'id': user.id})
 
 
 @require('post', None)
@@ -19,7 +19,7 @@ def login(request):
     user = User.objects.filter(email=params['email']).first()
     if user and user.authenticate(params['password']):
         request.session['user_id'] = user.id
-        return JsonResponse({'user_id': user.id})
+        return JsonResponse(modeltodict(user, exclude='password'))
     return HttpResponse(status=400)
 
 
@@ -27,3 +27,9 @@ def login(request):
 def logout(request):
     request.session.delete()
     return JsonResponse({})
+
+
+@require('get', 'user')
+def current(request):
+    user = request.user
+    return JsonResponse(modeltodict(user, exclude='password'))
