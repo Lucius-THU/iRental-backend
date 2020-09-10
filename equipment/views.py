@@ -5,6 +5,14 @@ from common import *
 from .models import Equipment
 
 
+def get_equipment(request, id):
+    user = request.user
+    q = Q(id=id)
+    if not user.is_admin():
+        q &= Q(provider=user)
+    return Equipment.objects.filter(q)
+
+
 @require('get', 'user')
 def index(request):
     params = request.GET
@@ -35,94 +43,83 @@ def index(request):
 @require('post', 'provider')
 def create(request):
     data = request.params
-    Equipment.objects.create(**{
+    e = Equipment.objects.create(**{
         'name': data['name'],
         'address': data['address'],
         'expire_at': dtparser.parse(data['expire_at']),
         'provider': request.user
     })
+    return JsonResponse(modeltodict(e))
+
+
+@require('post', 'provider')
+def update(request, id):
+    data = request.POST
+    equipment_set = get_equipment(request, id)
+    if len(equipment_set) == 0:
+        raise ValueError('The equipment does not exist')
+    else:
+        if 'name' in data:
+            equipment_set[0].name = data['name']
+        if 'address' in data:
+            equipment_set[0].address = data['address']
+        if 'expired_at' in data:
+            equipment_set[0].expired_at = data['expired_at']
+        equipment_set[0].save()
     return JsonResponse({})
 
 
 @require('post', 'provider')
-def equipment_request(request, id):
-    existed_equipment = Equipment.objects.filter(id=id)
-    if len(existed_equipment) == 0:
+def delete(request, id):
+    equipment_set = get_equipment(request, id)
+    if len(equipment_set) == 0:
         raise ValueError('The equipment does not exist')
     else:
-        existed_equipment[0].requesting = True
-        existed_equipment[0].save()
+        equipment_set.delete()
     return JsonResponse({})
 
 
-def equipment_launch(request, id):
-    existed_equipment = Equipment.objects.filter(id=id)
-    if len(existed_equipment) == 0:
+@require('post', 'provider')
+def request(request, id):
+    equipment_set = get_equipment(request, id)
+    if len(equipment_set) == 0:
         raise ValueError('The equipment does not exist')
     else:
-        existed_equipment[0].launched = True
-        existed_equipment[0].save()
+        equipment_set[0].requesting = True
+        equipment_set[0].save()
     return JsonResponse({})
 
 
-def equipment_rent(request, id, user):
-    existed_equipment = Equipment.objects.filter(id=id)
-    if len(existed_equipment) == 0:
+@require('post', 'provider')
+def discontinue(request, id):
+    equipment_set = get_equipment(request, id)
+    if len(equipment_set) == 0:
         raise ValueError('The equipment does not exist')
     else:
-        if existed_equipment[0].user is not None:
-            raise ValueError('The equipment has been rented')
-        else:
-            existed_equipment[0].user = user
+        equipment_set[0].launched = False
+        equipment_set[0].save()
     return JsonResponse({})
 
 
-def equipment_del(request, id):
-    existed_equipment = Equipment.objects.filter(id=id)
-    if len(existed_equipment) == 0:
+@require('post', 'admin')
+def launch(request, id):
+    equipment_set = get_equipment(request, id)
+    if len(equipment_set) == 0:
         raise ValueError('The equipment does not exist')
     else:
-        existed_equipment.delete()
+        equipment_set[0].launched = True
+        equipment_set[0].save()
     return JsonResponse({})
 
 
-def equipment_update(request, id):
-    data = request.POST
-    existed_equipment = Equipment.objects.filter(id=id)
-    if len(existed_equipment) == 0:
-        raise ValueError('The equipment does not exist')
-    else:
-        if 'name' in data:
-            existed_equipment[0]['name'] = data['name']
-        if 'address' in data:
-            existed_equipment[0]['address'] = data['address']
-        if 'expired_at' in data:
-            existed_equipment[0]['expired_at'] = data['expired_at']
-    return JsonResponse({})
-
-
-def equipment_query(request):
-    data = request.GET
-    total = 0
-    lists = []
-    if 'name' not in data and 'id' not in data:
-        total = len(Equipment.objects.get())
-        lists = Equipment.objects.get()
-    elif 'id' in data:
-        existed_equipment = Equipment.objects.filter(id=data['id'])
-        if len(existed_equipment) == 0:
-            raise ValueError('The equipment does not exist')
-        else:
-            total = 1
-            lists = existed_equipment
-    else:
-        existed_equipment = Equipment.objects.get()
-        for item in existed_equipment:
-            if data['name'] in item.name:
-                list.append(item)
-        total = len(lists)
-    response = {
-        'total': total,
-        'lists': lists
-    }
-    return JsonResponse(response)
+# This should be in requests/rental/<id>/update
+# def rent(request, id, user):
+#     equipment_set = get_equipment(request, id)
+#     if len(equipment_set) == 0:
+#         raise ValueError('The equipment does not exist')
+#     else:
+#         if equipment_set[0].user is not None:
+#             raise ValueError('The equipment has been rented')
+#         else:
+#             equipment_set[0].user = user
+#     return JsonResponse({})

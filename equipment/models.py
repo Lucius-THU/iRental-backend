@@ -16,4 +16,4 @@ class Equipment(models.Model):
     requesting = models.BooleanField(default=False)
 
     def __str__(self):
-        return name
+        return self.name
