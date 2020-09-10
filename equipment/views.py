@@ -13,14 +13,28 @@ def get_equipment_set(request, id):
     return Equipment.objects.filter(q)
 
 
+@require('post', 'provider')
+def create(request):
+    params = request.params
+    e = Equipment.objects.create(**{
+        'name': params['name'],
+        'address': params['address'],
+        'expire_at': dtparser.parse(params['expire_at', str]),
+        'provider': request.user
+    })
+    return JsonResponse(modeltodict(e))
+
+
 @require('get', 'user')
 def query(request):
     params = request.GET
     user = request.user
     q = Q()
     for k, v in params.items():
-        if k in ['name', 'id', 'user_id', 'provider_id']:
+        if k in ['id', 'user_id', 'provider_id']:
             q &= Q(**{k: v})
+        elif k == 'name':
+            q &= Q(name__contains=v)
     if not user.isprovider():
         q &= Q(launched=True)
     elif not user.isadmin():
@@ -37,18 +51,6 @@ def query(request):
         'total': total,
         'list': list(map(modeltodict, result))
     })
-
-
-@require('post', 'provider')
-def create(request):
-    params = request.params
-    e = Equipment.objects.create(**{
-        'name': params['name'],
-        'address': params['address'],
-        'expire_at': dtparser.parse(params['expire_at', str]),
-        'provider': request.user
-    })
-    return JsonResponse(modeltodict(e))
 
 
 @require('post', 'provider')
