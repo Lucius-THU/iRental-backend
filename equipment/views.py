@@ -55,18 +55,15 @@ def query(request):
 
 @require('post', 'provider')
 def update(request, id):
-    params = request.POST
-    equipment_set = get_equipment_set(request, id)
-    if len(equipment_set) == 0:
-        raise ValueError('The equipment does not exist')
-    else:
-        if 'name' in params:
-            equipment_set[0].name = params['name']
-        if 'address' in params:
-            equipment_set[0].address = params['address']
-        if 'expired_at' in params:
-            equipment_set[0].expired_at = params['expired_at']
-        equipment_set[0].save()
+    e = get_equipment_set(request, id).first()
+    if e is None:
+        raise ValueError('not found')
+    for k, v in request.params.items():
+        if k in ['name', 'address']:
+            setattr(e, k, v)
+        elif k == 'expire_at':
+            e.expire_at = dtparser.parse(v)
+    e.save()
     return JsonResponse({})
 
 
