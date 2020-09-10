@@ -5,12 +5,15 @@ from shared import *
 from .models import Equipment
 
 
-def get_equipment_set(request, id):
+def get_equipment(request, id):
     user = request.user
-    q = Q(id=id)
-    if not user.isadmin():
-        q &= Q(provider=user)
-    return Equipment.objects.filter(q)
+    q = Q(user=user)
+    if user.isadmin():
+        q |= ~Q(id=None)
+    elif user.isprovider():
+        q |= Q(provider=user)
+    q &= Q(id=id)
+    return Equipment.objects.filter(q).first()
 
 
 @require('post', 'provider')
@@ -31,7 +34,7 @@ def query(request):
     user = request.user
     q = Q()
     for k, v in params.items():
-        if k in ['id', 'user_id', 'provider_id']:
+        if k in ['id', 'user_id', 'provider_id', 'requesting']:
             q &= Q(**{k: v})
         elif k == 'name':
             q &= Q(name__contains=v)
@@ -55,7 +58,7 @@ def query(request):
 
 @require('post', 'provider')
 def update(request, id):
-    e = get_equipment_set(request, id).first()
+    e = get_equipment(request, id)
     if e is None:
         raise ValueError('not found')
     for k, v in request.params.items():
@@ -69,44 +72,60 @@ def update(request, id):
 
 @require('post', 'provider')
 def delete(request, id):
-    equipment_set = get_equipment_set(request, id)
-    if len(equipment_set) == 0:
-        raise ValueError('The equipment does not exist')
-    else:
-        equipment_set.delete()
+    e = get_equipment(request, id)
+    if e is None:
+        raise ValueError('not found')
+    e.delete()
     return JsonResponse({})
 
 
 @require('post', 'provider')
 def request(request, id):
-    equipment_set = get_equipment_set(request, id)
-    if len(equipment_set) == 0:
-        raise ValueError('The equipment does not exist')
-    else:
-        equipment_set[0].requesting = True
-        equipment_set[0].save()
+    e = get_equipment(request, id)
+    if e is None:
+        raise ValueError('not found')
+    e.requesting = True
+    e.save()
     return JsonResponse({})
 
 
 @require('post', 'provider')
 def discontinue(request, id):
-    equipment_set = get_equipment_set(request, id)
-    if len(equipment_set) == 0:
-        raise ValueError('The equipment does not exist')
-    else:
-        equipment_set[0].launched = False
-        equipment_set[0].save()
+    e = get_equipment(request, id)
+    if e is None:
+        raise ValueError('not found')
+    e.launched = False
+    e.requesting = False
+    e.save()
     return JsonResponse({})
 
 
 @require('post', 'admin')
 def launch(request, id):
-    equipment_set = get_equipment_set(request, id)
-    if len(equipment_set) == 0:
-        raise ValueError('The equipment does not exist')
-    else:
-        equipment_set[0].launched = True
-        equipment_set[0].save()
+    e = get_equipment(request, id)
+    if e is None:
+        raise ValueError('not found')
+    e.launched = True
+    e.requesting = False
+    e.save()
+    return JsonResponse({})
+
+
+@require('post', 'user')
+def terminate(request, id):
+    user = request.user
+    e = get_equipment(request, id)
+    if e is None:
+        raise ValueError('not found')
+    conds = [
+        user.isadmin(),
+        user.isprovider() and user == e.provider,
+        user == e.user
+    ]
+    if not any(conds):
+        raise ValueError('access denied')
+    e.user = None
+    e.save()
     return JsonResponse({})
 
 
@@ -114,7 +133,7 @@ def launch(request, id):
 # def rent(request, id, user):
 #     equipment_set = get_equipment_set(request, id)
 #     if len(equipment_set) == 0:
-#         raise ValueError('The equipment does not exist')
+#         raise ValueError('not found')
 #     else:
 #         if equipment_set[0].user is not None:
 #             raise ValueError('The equipment has been rented')
