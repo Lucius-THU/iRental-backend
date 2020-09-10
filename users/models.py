@@ -1,5 +1,6 @@
 from django.db import models
 import bcrypt
+from common import *
 
 
 class User(models.Model):
@@ -35,7 +36,7 @@ class User(models.Model):
         pw = password.encode('utf-8')
         return bcrypt.checkpw(pw, self.password)
 
-    def in_group(self, group):
+    def ingroup(self, group):
         groups = []
         for g in ['admin', 'provider', 'user']:
             groups.append(g)
@@ -43,8 +44,11 @@ class User(models.Model):
                 return self.group in groups
         return False
 
-    def is_provider(self):
-        return self.in_group('provider')
+    def isprovider(self):
+        return self.ingroup('provider')
 
-    def is_admin(self):
-        return self.in_group('admin')
+    def isadmin(self):
+        return self.ingroup('admin')
+
+    def todict(self):
+        return modeltodict(self, exclude='password')

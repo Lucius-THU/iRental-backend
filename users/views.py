@@ -1,5 +1,5 @@
 from django.http import HttpResponse, JsonResponse
-from common import *
+from shared import *
 from .models import User
 
 
@@ -19,7 +19,7 @@ def login(request):
     user = User.objects.filter(email=params['email']).first()
     if user and user.authenticate(params['password']):
         request.session['user_id'] = user.id
-        return JsonResponse(modeltodict(user, exclude='password'))
+        return JsonResponse(user.todict())
     return HttpResponse(status=400)
 
 
@@ -29,7 +29,49 @@ def logout(request):
     return JsonResponse({})
 
 
+@require('get', 'admin')
+def index(request):
+    params = request.GET
+    page = params.get('page')
+    size = params.get('size')
+    if page or size:
+        page = int(page or 1)
+        size = int(size or 10)
+    users = User.objects.all()[(page - 1) * size: page * size]
+    return JsonResponse({
+        'list': list(map(User.todict, result))
+    })
+
+
 @require('get', 'user')
 def current(request):
     user = request.user
-    return JsonResponse(modeltodict(user, exclude='password'))
+    return JsonResponse(user.todict())
+
+
+@require('get', 'user')
+def detail(request, id):
+    user = User.objects.get(id=id)
+    return JsonResponse(user.todict())
+
+
+@require('post', 'user')
+def update(request, id):
+    params = request.params
+    user = User.objects.get(id=id)
+    for k in ['name', 'address', 'contact']:
+        if k in params:
+            setattr(user, k, params[k])
+    if request.user.isadmin() and not user.isadmin():
+        group = params['group']
+        if group in ['user', 'provider']:
+            user.group = group
+    user.save()
+    return JsonResponse(user.todict())
+
+
+@require('post', 'admin')
+def delete(request, id):
+    user = User.objects.get(id=id)
+    user.delete()
+    return JsonResponse({})

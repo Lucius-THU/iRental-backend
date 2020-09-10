@@ -1,14 +1,14 @@
 import dateutil.parser as dtparser
 from django.http import HttpResponse, HttpRequest, JsonResponse
 from django.db.models import Q
-from common import *
+from shared import *
 from .models import Equipment
 
 
 def get_equipment(request, id):
     user = request.user
     q = Q(id=id)
-    if not user.is_admin():
+    if not user.isadmin():
         q &= Q(provider=user)
     return Equipment.objects.filter(q)
 
@@ -22,9 +22,9 @@ def index(request):
             q[key] = params[key]
     q = Q(**q)
     user = request.user
-    if not user.is_provider():
+    if not user.isprovider():
         q &= Q(launched=True)
-    elif not user.is_admin():
+    elif not user.isadmin():
         q &= Q(launched=True) | Q(provider_id=user.id)
     result = Equipment.objects.filter(q)
     total = len(result)
