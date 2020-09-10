@@ -31,9 +31,9 @@ def index(request):
     page = params.get('page')
     size = params.get('size')
     if page or size:
-        page = page or 1
-        size = size or 10
-        result = result[(page - 1) * size:page * size]
+        page = int(page or 1)
+        size = int(size or 10)
+        result = result[(page - 1) * size: page * size]
     return JsonResponse({
         'total': total,
         'list': list(map(modeltodict, result))
