@@ -22,3 +22,9 @@ def require(method, group = 'user'):
             return func(request, *args, **kwargs)
         return inner
     return deco
+
+
+def modeltodict(obj):
+    d = vars(obj)
+    del d['_state']
+    return d

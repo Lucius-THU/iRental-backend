@@ -1,11 +1,39 @@
 import dateutil.parser as dtparser
 from django.http import HttpResponse, HttpRequest, JsonResponse
+from django.db.models import Q
 from common import *
 from .models import Equipment
 
 
+@require('get', 'user')
+def index(request):
+    params = request.GET
+    q = {}
+    for key in ['name', 'id', 'user_id', 'provider_id']:
+        if key in params:
+            q[key] = params[key]
+    q = Q(**q)
+    user = request.user
+    if not user.is_provider():
+        q &= Q(launched=True)
+    elif not user.is_admin():
+        q &= Q(launched=True) | Q(provider_id=user.id)
+    result = Equipment.objects.filter(q)
+    total = len(result)
+    page = params.get('page')
+    size = params.get('size')
+    if page or size:
+        page = page or 1
+        size = size or 10
+        result = result[(page - 1) * size:page * size]
+    return JsonResponse({
+        'total': total,
+        'list': list(map(modeltodict, result))
+    })
+
+
 @require('post', 'provider')
-def equipment_create(request):
+def create(request):
     data = request.params
     Equipment.objects.create(**{
         'name': data['name'],

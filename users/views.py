@@ -4,6 +4,16 @@ from .models import User
 
 
 @require('post', None)
+def signup(request):
+    params = request.params
+    user = User.create(**{
+        'email': params['email'],
+        'password': params['password']
+    })
+    return JsonResponse({'user_id': user.id})
+
+
+@require('post', None)
 def login(request):
     params = request.params
     user = User.objects.filter(email=params['email']).first()

@@ -42,3 +42,9 @@ class User(models.Model):
             if group == g:
                 return self.group in groups
         return False
+
+    def is_provider(self):
+        return self.in_group('provider')
+
+    def is_admin(self):
+        return self.in_group('admin')
