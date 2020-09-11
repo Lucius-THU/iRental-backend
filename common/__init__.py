@@ -6,8 +6,14 @@ def modeltodict(obj, **kwargs):
         if k == '_state':
             return False
         if 'only' in kwargs:
-            return k in kwargs['only']
+            attrs = kwargs['only']
+            if isinstance(attrs, str):
+                attrs = [attrs]
+            return k in attrs
         if 'exclude' in kwargs:
-            return k not in kwargs['exclude']
+            attrs = kwargs['exclude']
+            if isinstance(attrs, str):
+                attrs = [attrs]
+            return k not in attrs
         return True
     return dict(filter(filtered, vars(obj).items()))
