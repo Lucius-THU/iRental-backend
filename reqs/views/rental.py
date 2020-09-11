@@ -6,20 +6,6 @@ from equipment.models import Equipment
 from reqs.models import RentalRequest
 
 
-def get_rental_reqs(request, id = None, only_editable = False):
-    user = request.user
-    q = Q(id=None)
-    if user.isadmin():
-        q |= ~Q(id=None)
-    elif user.isprovider():
-        q |= Q(equipment__in=user.equipment_set.all())
-    if not only_editable:
-        q |= Q(user=user)
-    if id is not None:
-        q &= Q(id=id)
-    return RentalRequest.objects.filter(q)
-
-
 @require('post', 'user')
 def create(request):
     params = request.params
@@ -42,11 +28,19 @@ def create(request):
 @require('get', 'user')
 def query(request):
     params = request.GET
-    q = {}
+    user = request.user
+    q = Q()
+    if not user.isprovider():
+        q &= Q(user=user)
+    if params.get('provided') == '1':
+        e = Equipment.objects.filter(provider_id=user.id)
+        q &= Q(equipment__in=e)
+    elif not user.isadmin():
+        q &= Q(user=user)
     for k, v in params.items():
         if k in ['id', 'user_id', 'equipment_id']:
-            q[k] = v
-    reqs = get_rental_reqs(request).filter(**q)
+            q &= Q(**{k: v})
+    reqs = RentalRequest.objects.filter(q)
     total = len(reqs)
     page = params.get('page')
     size = params.get('size')
@@ -62,7 +56,11 @@ def query(request):
 
 @require('post', 'provider')
 def update(request, id):
-    r = get_rental_reqs(request, id, only_editable=True)
+    user = request.user
+    q = Q(id=id)
+    if not user.isadmin():
+        q &= Q(equipment__in=user.equipment_set.all())
+    r = RentalRequest.objects.filter(q)
     if not r.exists():
         raise ValueError('not found')
     if request.params['approved']:
@@ -78,7 +76,7 @@ def update(request, id):
 
 @require('post', 'admin')
 def delete(request, id):
-    r = get_rental_reqs(request, id)
+    r = RentalRequest.objects.filter(id=id)
     if not r.exists():
         raise ValueError('not found')
     r.delete()
