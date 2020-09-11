@@ -26,11 +26,15 @@ def create(request):
     e = Equipment.objects.filter(id=params['equipment_id']).first()
     if e is None or not e.launched:
         raise ValueError('not avaliable')
+    try:
+        rent_until = dtparser.parse(params['expire_at'])
+    except BaseException:
+        rent_until = dtparser.parse(params['rent_until', str])
     r = RentalRequest.objects.create(**{
         'user': request.user,
         'equipment': e,
         'purpose': params['purpose'],
-        'rent_until': dtparser.parse(params['rent_until', str]),
+        'rent_until': rent_until,
     })
     return JsonResponse(modeltodict(r))
 
