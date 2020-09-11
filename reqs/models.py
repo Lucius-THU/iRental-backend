@@ -16,3 +16,4 @@ class ProviderRequest(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     info = models.TextField()
     approved = models.BooleanField(default=False)
+    rejected = models.BooleanField(default=False)
