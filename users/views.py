@@ -9,8 +9,7 @@ from .models import *
 
 def send_verification_code(email):
     code = '%06d' % secrets.randbelow(10 ** 6)
-    # send email
-    print(code)
+    send_mail('verification code', code, None, [email])
     SignupRequest.objects.create(**{
         'email': email,
         'token': code,
