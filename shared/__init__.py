@@ -6,8 +6,9 @@ from common import *
 from users.models import User
 
 
-def require(method, group = 'user'):
+def require(method, group='user'):
     method = method.upper()
+
     def deco(func):
         @functools.wraps(func)
         def inner(request, *args, **kwargs):
