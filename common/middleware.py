@@ -15,6 +15,11 @@ class paramsdict(dict):
                 raise TypeError(s % (key, cls.__name__))
         return value
 
+    def get(self, key):
+        if key not in self:
+            return None
+        return super().__getitem__(key)
+
 
 class JsonMiddleware:
     def __init__(self, get_response):

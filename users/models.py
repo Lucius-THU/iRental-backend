@@ -3,15 +3,14 @@ import bcrypt
 from common import *
 
 
+# password is saved as a hash
+
 class User(models.Model):
     email = models.EmailField(max_length=255, unique=True)
+    password = models.BinaryField()
     name = models.CharField(max_length=255, default='')
     address = models.CharField(max_length=255, default='')
     contact = models.CharField(max_length=255, default='')
-
-    # password hash
-    password = models.BinaryField()
-
     group = models.CharField(max_length=255, default='user')
 
     @classmethod
@@ -52,3 +51,10 @@ class User(models.Model):
 
     def todict(self):
         return modeltodict(self, exclude='password')
+
+
+class SignupRequest(models.Model):
+    email = models.EmailField(max_length=255)
+    # password = models.BinaryField()
+    token = models.CharField(max_length=255)
+    expire_at = models.DateTimeField()

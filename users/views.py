@@ -1,14 +1,46 @@
+from datetime import datetime, timezone, timedelta
+import secrets
+from django.conf import settings
 from django.http import HttpResponse, JsonResponse
+from django.core.mail import send_mail
 from shared import *
-from .models import User
+from .models import *
+
+
+def send_verification_code(email):
+    code = '%06d' % secrets.randbelow(10 ** 6)
+    # send email
+    print(code)
+    SignupRequest.objects.create(**{
+        'email': email,
+        'token': code,
+        'expire_at': datetime.now(timezone.utc) + timedelta(minutes=2)
+    })
 
 
 @require('post', None)
 def signup(request):
     params = request.params
+    email = params['email']
+    if settings.DEBUG and params.get('force'):
+        password = params['password']
+    else:
+        token = params.get('token')
+        if token is None:
+            send_verification_code(email)
+            return JsonResponse({})
+        password = params['password']
+        reqs = SignupRequest.objects.filter(**{
+            'email': email,
+            'token': token,
+            'expire_at__gt': datetime.now(timezone.utc)
+        })
+        if not reqs.exists():
+            raise ValueError('invalid token')
+        reqs.delete()
     user = User.create(**{
-        'email': params['email'],
-        'password': params['password']
+        'email': email,
+        'password': password
     })
     return JsonResponse({'id': user.id})
 
