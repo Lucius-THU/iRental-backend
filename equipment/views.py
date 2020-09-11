@@ -125,6 +125,7 @@ def terminate(request, id):
     if not any(conds):
         raise ValueError('access denied')
     e.user = None
+    e.rent_until = None
     e.save()
     return JsonResponse({})
 

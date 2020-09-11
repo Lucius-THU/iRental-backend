@@ -30,7 +30,7 @@ def create(request):
         'user': request.user,
         'equipment': e,
         'purpose': params['purpose'],
-        'expire_at': dtparser.parse(params['expire_at', str]),
+        'rent_until': dtparser.parse(params['rent_until', str]),
     })
     return JsonResponse(modeltodict(r))
 
@@ -65,6 +65,7 @@ def update(request, id):
         r.update(approved=True, rejected=False)
         e = r[0].equipment
         e.user = r[0].user
+        e.rent_until = r[0].rent_until
         e.save()
     else:
         r.update(approved=False, rejected=True)

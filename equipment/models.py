@@ -14,6 +14,7 @@ class Equipment(models.Model):
     expire_at = models.DateTimeField()
     launched = models.BooleanField(default=False)
     requesting = models.BooleanField(default=False)
+    rent_until = models.DateTimeField(null=True, default=None)
 
     def __str__(self):
         return self.name
