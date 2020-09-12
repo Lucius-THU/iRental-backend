@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'equipment.apps.EquipmentConfig',
     'reqs.apps.ReqsConfig',
     'records.apps.RecordsConfig',
+    'notifications.apps.NotificationsConfig',
     # 'django.contrib.admin',
     # 'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -142,4 +143,4 @@ EMAIL_USE_TLS = False
 
 EMAIL_USE_SSL = True
 
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

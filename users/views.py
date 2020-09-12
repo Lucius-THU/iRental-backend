@@ -4,7 +4,7 @@ from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 from django.core.mail import send_mail
 from shared import *
-from .models import *
+from .models import User, SignupRequest
 
 
 def send_verification_code(email):
@@ -37,10 +37,7 @@ def signup(request):
         if not reqs.exists():
             raise ValueError('invalid token')
         reqs.delete()
-    user = User.create(**{
-        'email': email,
-        'password': password
-    })
+    user = User.create(email, password)
     return JsonResponse({'id': user.id})
 
 
@@ -78,7 +75,7 @@ def index(request):
 @require('get', 'user')
 def current(request):
     user = request.user
-    return JsonResponse(user.todict())
+    return JsonResponse(user.todict(True))
 
 
 @require('get', 'user')

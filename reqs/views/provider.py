@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.db.models import Q
 from shared import *
 from equipment.models import Equipment
+from notifications.models import Notification
 from ..models import ProviderRequest
 
 
@@ -20,7 +21,7 @@ def create(request):
     params = request.params
     r = ProviderRequest.objects.create(**{
         'user': request.user,
-        'info': params['info'],
+        'info': params['info']
     })
     return JsonResponse(modeltodict(r))
 
@@ -50,4 +51,8 @@ def update(request, id):
         user.save()
     else:
         r.update(approved=False, rejected=True)
+    Notification.create(
+        r[0].user,
+        params.get('notification')
+    )
     return JsonResponse({})
