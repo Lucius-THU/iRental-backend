@@ -9,5 +9,6 @@ urlpatterns = [
     path('<int:id>/request', views.request),
     path('<int:id>/discontinue', views.discontinue),
     path('<int:id>/launch', views.launch),
+    path('<int:id>/close', views.close),
     path('<int:id>/terminate', views.terminate),
 ]

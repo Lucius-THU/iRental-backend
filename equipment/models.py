@@ -13,9 +13,10 @@ class Equipment(models.Model):
     name = models.CharField(max_length=255)
     address = models.CharField(max_length=255)
     expire_at = models.DateTimeField()
+    rent_until = models.DateTimeField(null=True, default=None)
     launched = models.BooleanField(default=False)
     requesting = models.BooleanField(default=False)
-    rent_until = models.DateTimeField(null=True, default=None)
+    returning = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name

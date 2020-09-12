@@ -8,6 +8,8 @@ class RentalRecord(models.Model):
     user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     equipment = models.ForeignKey(Equipment, null=True, on_delete=models.SET_NULL)
     returned = models.BooleanField(default=False)
+    rented_at = models.DateTimeField()
+    returned_at = models.DateTimeField(null=True, default=None)
 
     def todict(self):
         d = modeltodict(self)
