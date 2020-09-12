@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import dateutil.parser as dtparser
 from django.http import JsonResponse
 from django.db.models import Q
@@ -8,12 +9,11 @@ from .models import Equipment
 
 def get_equipment(request, id):
     user = request.user
-    q = Q(user=user)
-    if user.isadmin():
-        q |= ~Q(id=None)
-    elif user.isprovider():
-        q |= Q(provider=user)
-    q &= Q(id=id)
+    q = Q(id=id)
+    if not user.isprovider():
+        q &= Q(id=None)
+    elif not user.isadmin():
+        q &= Q(provider=user)
     return Equipment.objects.filter(q).first()
 
 
@@ -35,9 +35,9 @@ def query(request):
     user = request.user
     q = Q()
     for k, v in params.items():
-        if k in ['id', 'user_id', 'provider_id', 'requesting']:
+        if k != 'name':
             q &= Q(**{k: v})
-        elif k == 'name':
+        else:
             q &= Q(name__contains=v)
     if not user.isprovider():
         q &= Q(launched=True)
@@ -125,20 +125,27 @@ def launch(request, id):
 
 
 @require('post', 'user')
-def terminate(request, id):
+def close(request, id):
     user = request.user
+    e = Equipment.objects.filter(user=user, id=id).first()
+    if e is None:
+        raise ValueError('not found')
+    e.returning = True
+    e.save()
+    return JsonResponse({})
+
+
+@require('post', 'provider')
+def terminate(request, id):
     e = get_equipment(request, id)
     if e is None:
         raise ValueError('not found')
-    conds = [
-        user.isadmin(),
-        user.isprovider() and user == e.provider,
-        user == e.user
-    ]
-    if not any(conds):
-        raise ValueError('access denied')
     e.user = None
     e.rent_until = None
+    e.returning = False
     e.save()
-    e.rentalrecord_set.update(returned=True)
+    e.rentalrecord_set.filter(returned=False).update(**{
+        'returned': True,
+        'returned_at': utcnow()
+    })
     return JsonResponse({})

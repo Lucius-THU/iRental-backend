@@ -77,7 +77,8 @@ def update(request, id):
         RentalRecord.objects.create(**{
             'user': e.user,
             'equipment': e,
-            'returned': False
+            'returned': False,
+            'rented_at': utcnow()
         })
     else:
         r.update(approved=False, rejected=True)
