@@ -13,7 +13,7 @@ def send_verification_code(email):
     SignupRequest.objects.create(**{
         'email': email,
         'token': code,
-        'expire_at': datetime.now(timezone.utc) + timedelta(minutes=2)
+        'expire_at': datetime.now(timezone.utc) + timedelta(minutes=10)
     })
 
 

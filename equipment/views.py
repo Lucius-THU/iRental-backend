@@ -101,6 +101,11 @@ def discontinue(request, id):
     e.rent_until = None
     e.save()
     e.rentalrecord_set.update(returned=True)
+    if request.user != e.provider:
+        Notification.create(
+            e.provider,
+            request.params.get('notification')
+        )
     return JsonResponse({})
 
 
