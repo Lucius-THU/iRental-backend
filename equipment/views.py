@@ -127,17 +127,5 @@ def terminate(request, id):
     e.user = None
     e.rent_until = None
     e.save()
+    e.rentalrecord_set.update(returned=True)
     return JsonResponse({})
-
-
-# This should be in requests/rental/<id>/update
-# def rent(request, id, user):
-#     equipment_set = get_equipment_set(request, id)
-#     if len(equipment_set) == 0:
-#         raise ValueError('not found')
-#     else:
-#         if equipment_set[0].user is not None:
-#             raise ValueError('The equipment has been rented')
-#         else:
-#             equipment_set[0].user = user
-#     return JsonResponse({})

@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from django.db.models import Q
 from shared import *
 from equipment.models import Equipment
-from reqs.models import ProviderRequest
+from ..models import ProviderRequest
 
 
 def get_provider_reqs(request, id=None):
