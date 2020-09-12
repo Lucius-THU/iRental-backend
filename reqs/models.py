@@ -24,3 +24,8 @@ class ProviderRequest(models.Model):
     info = models.TextField()
     approved = models.BooleanField(default=False)
     rejected = models.BooleanField(default=False)
+
+    def todict(self):
+        d = modeltodict(self)
+        d['user'] = self.user.todict()
+        return d
