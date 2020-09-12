@@ -22,7 +22,7 @@ def create(request):
         'purpose': params['purpose'],
         'rent_until': rent_until,
     })
-    return JsonResponse(modeltodict(r))
+    return JsonResponse(r.todict())
 
 
 @require('get', 'user')
@@ -50,7 +50,7 @@ def query(request):
         reqs = reqs[(page - 1) * size: page * size]
     return JsonResponse({
         'total': total,
-        'list': list(map(modeltodict, reqs))
+        'list': list(map(RentalRequest.todict, reqs))
     })
 
 

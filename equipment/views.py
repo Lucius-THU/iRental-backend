@@ -25,7 +25,7 @@ def create(request):
         'expire_at': dtparser.parse(params['expire_at', str]),
         'provider': request.user
     })
-    return JsonResponse(modeltodict(e))
+    return JsonResponse(e.todict())
 
 
 @require('get', 'user')
@@ -52,7 +52,7 @@ def query(request):
         result = result[(page - 1) * size: page * size]
     return JsonResponse({
         'total': total,
-        'list': list(map(modeltodict, result))
+        'list': list(map(Equipment.todict, result))
     })
 
 

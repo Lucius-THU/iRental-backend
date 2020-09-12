@@ -1,6 +1,6 @@
 from django.db import models
 import bcrypt
-from common import *
+from common import modeltodict
 
 
 # password is saved as a hash

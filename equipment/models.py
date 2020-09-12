@@ -1,5 +1,6 @@
 from django.db import models
 from users.models import User
+from common import modeltodict
 
 
 class Equipment(models.Model):
@@ -18,3 +19,8 @@ class Equipment(models.Model):
 
     def __str__(self):
         return self.name
+
+    def todict(self):
+        d = modeltodict(self)
+        d['provider'] = self.provider.todict()
+        return d
