@@ -2,6 +2,7 @@ import dateutil.parser as dtparser
 from django.http import JsonResponse
 from django.db.models import Q
 from shared import *
+from notifications.models import Notification
 from .models import Equipment
 
 
@@ -100,6 +101,11 @@ def discontinue(request, id):
     e.rent_until = None
     e.save()
     e.rentalrecord_set.update(returned=True)
+    if request.user != e.provider:
+        Notification.create(
+            e.provider,
+            request.params.get('notification')
+        )
     return JsonResponse({})
 
 
@@ -111,6 +117,10 @@ def launch(request, id):
     e.launched = True
     e.requesting = False
     e.save()
+    Notification.create(
+        e.provider,
+        request.params.get('notification')
+    )
     return JsonResponse({})
 
 

@@ -4,6 +4,7 @@ from django.db.models import Q
 from shared import *
 from equipment.models import Equipment
 from records.models import RentalRecord
+from notifications.models import Notification
 from ..models import RentalRequest
 
 
@@ -11,7 +12,7 @@ from ..models import RentalRequest
 def create(request):
     params = request.params
     e = Equipment.objects.filter(id=params['equipment_id']).first()
-    if e is None or not e.launched:
+    if e is None or not e.launched or e.user is not None:
         raise ValueError('not avaliable')
     try:
         rent_until = dtparser.parse(params['expire_at'])
@@ -21,7 +22,7 @@ def create(request):
         'user': request.user,
         'equipment': e,
         'purpose': params['purpose'],
-        'rent_until': rent_until,
+        'rent_until': rent_until
     })
     return JsonResponse(r.todict())
 
@@ -57,6 +58,7 @@ def query(request):
 
 @require('post', 'provider')
 def update(request, id):
+    params = request.params
     user = request.user
     q = Q(id=id)
     if not user.isadmin():
@@ -64,7 +66,7 @@ def update(request, id):
     r = RentalRequest.objects.filter(q)
     if not r.exists():
         raise ValueError('not found')
-    if request.params['approved']:
+    if params['approved']:
         e = r[0].equipment
         if e.user is not None:
             raise ValueError('already rented')
@@ -79,6 +81,10 @@ def update(request, id):
         })
     else:
         r.update(approved=False, rejected=True)
+    Notification.create(
+        r[0].user,
+        params.get('notification')
+    )
     return JsonResponse({})
 
 

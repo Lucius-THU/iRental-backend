@@ -37,9 +37,9 @@ class User(models.Model):
 
     def ingroup(self, group):
         groups = []
-        for g in ['admin', 'provider', 'user']:
-            groups.append(g)
-            if group == g:
+        for v in ['admin', 'provider', 'user']:
+            groups.append(v)
+            if group == v:
                 return self.group in groups
         return False
 
@@ -49,12 +49,20 @@ class User(models.Model):
     def isadmin(self):
         return self.ingroup('admin')
 
-    def todict(self):
-        return modeltodict(self, exclude='password')
+    def todict(self, notifications=False):
+        d = modeltodict(self, exclude='password')
+        if notifications:
+            a = []
+            for item in self.notification_set.filter(unread=True):
+                a.append({
+                    'id': item.id,
+                    'content': item.content
+                })
+            d['notifications'] = a
+        return d
 
 
 class SignupRequest(models.Model):
     email = models.EmailField(max_length=255)
-    # password = models.BinaryField()
     token = models.CharField(max_length=255)
     expire_at = models.DateTimeField()
