@@ -3,7 +3,8 @@ from django.http import JsonResponse
 from django.db.models import Q
 from shared import *
 from equipment.models import Equipment
-from reqs.models import RentalRequest
+from records.models import RentalRecord
+from ..models import RentalRequest
 
 
 @require('post', 'user')
@@ -64,11 +65,18 @@ def update(request, id):
     if not r.exists():
         raise ValueError('not found')
     if request.params['approved']:
-        r.update(approved=True, rejected=False)
         e = r[0].equipment
+        if e.user is not None:
+            raise ValueError('already rented')
+        r.update(approved=True, rejected=False)
         e.user = r[0].user
         e.rent_until = r[0].rent_until
         e.save()
+        RentalRecord.objects.create(**{
+            'user': e.user,
+            'equipment': e,
+            'returned': False
+        })
     else:
         r.update(approved=False, rejected=True)
     return JsonResponse({})
