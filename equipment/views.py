@@ -96,7 +96,10 @@ def discontinue(request, id):
         raise ValueError('not found')
     e.launched = False
     e.requesting = False
+    e.user = None
+    e.rent_until = None
     e.save()
+    e.rentalrecord_set.update(returned=True)
     return JsonResponse({})
 
 

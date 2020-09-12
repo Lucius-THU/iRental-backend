@@ -65,8 +65,10 @@ def update(request, id):
     if not r.exists():
         raise ValueError('not found')
     if request.params['approved']:
-        r.update(approved=True, rejected=False)
         e = r[0].equipment
+        if e.user is not None:
+            raise ValueError('already rented')
+        r.update(approved=True, rejected=False)
         e.user = r[0].user
         e.rent_until = r[0].rent_until
         e.save()
