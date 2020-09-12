@@ -18,12 +18,16 @@ def get_provider_reqs(request, id=None):
 
 @require('post', 'user')
 def create(request):
-    params = request.params
+    user = request.user
+    if user.isprovider():
+        raise ValueError('nothing to request')
+    if ProviderRequest.objects.filter(user=user).exists():
+        raise ValueError('already requested')
     r = ProviderRequest.objects.create(**{
-        'user': request.user,
-        'info': params['info']
+        'user': user,
+        'info': request.params['info']
     })
-    return JsonResponse(modeltodict(r))
+    return JsonResponse(r.todict())
 
 
 @require('get', 'user')
@@ -35,16 +39,17 @@ def query(request):
             q[k] = v
     reqs = get_provider_reqs(request).filter(**q)
     return JsonResponse({
-        'list': list(map(modeltodict, reqs))
+        'list': list(map(ProviderRequest.todict, reqs))
     })
 
 
 @require('post', 'admin')
 def update(request, id):
+    params = request.params
     r = get_provider_reqs(request, id)
     if not r.exists():
         raise ValueError('not found')
-    if request.params['approved']:
+    if params['approved']:
         r.update(approved=True, rejected=False)
         user = r[0].user
         user.group = 'provider'
