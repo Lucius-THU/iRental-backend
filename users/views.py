@@ -62,10 +62,15 @@ def logout(request):
 @require('get', 'admin')
 def index(request):
     params = request.GET
+    q = {}
+    for k, v in params.items():
+        if k not in [ f.attname for f in User._meta.fields ]:
+            continue
+        q[k] = v
+    users = User.objects.filter(**q)
+    total = users.count()
     page = params.get('page')
     size = params.get('size')
-    users = User.objects.all()
-    total = users.count()
     if page or size:
         page = int(page or 1)
         size = int(size or 10)

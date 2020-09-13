@@ -35,6 +35,8 @@ def query(request):
     user = request.user
     q = Q()
     for k, v in params.items():
+        if k not in [ f.attname for f in Equipment._meta.fields ]:
+            continue
         if k != 'name':
             q &= Q(**{k: v})
         else:
