@@ -44,7 +44,7 @@ def query(request):
     elif not user.isadmin():
         q &= Q(launched=True) | Q(provider_id=user.id)
     result = Equipment.objects.filter(q)
-    total = len(result)
+    total = result.count()
     page = params.get('page')
     size = params.get('size')
     if page or size:

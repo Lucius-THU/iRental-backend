@@ -38,7 +38,15 @@ def query(request):
         if k in ['id', 'user_id']:
             q[k] = v
     reqs = get_provider_reqs(request).filter(**q)
+    total = reqs.count()
+    page = params.get('page')
+    size = params.get('size')
+    if page or size:
+        page = int(page or 1)
+        size = int(size or 10)
+        reqs = reqs[(page - 1) * size: page * size]
     return JsonResponse({
+        'total': total,
         'list': list(map(ProviderRequest.todict, reqs))
     })
 

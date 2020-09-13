@@ -63,11 +63,13 @@ def index(request):
     page = params.get('page')
     size = params.get('size')
     users = User.objects.all()
+    total = users.count()
     if page or size:
         page = int(page or 1)
         size = int(size or 10)
         users = users[(page - 1) * size: page * size]
     return JsonResponse({
+        'total': total,
         'list': list(map(User.todict, users))
     })
 

@@ -20,7 +20,7 @@ def query(request):
         if k in ['id', 'user_id', 'equipment_id']:
             q &= Q(**{k: v})
     records = RentalRecord.objects.filter(q)
-    total = len(records)
+    total = records.count()
     page = params.get('page')
     size = params.get('size')
     if page or size:
