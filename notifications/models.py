@@ -7,6 +7,9 @@ class Notification(models.Model):
     content = models.TextField()
     unread = models.BooleanField(default=True)
 
+    class Meta:
+        ordering = ['-id']
+
     @classmethod
     def create(cls, user, content):
         if content is None:

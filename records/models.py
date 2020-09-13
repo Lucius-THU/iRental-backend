@@ -11,6 +11,9 @@ class RentalRecord(models.Model):
     rented_at = models.DateTimeField()
     returned_at = models.DateTimeField(null=True, default=None)
 
+    class Meta:
+        ordering = ['-id']
+
     def todict(self):
         d = modeltodict(self)
         d['user'] = self.user.todict()

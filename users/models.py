@@ -13,6 +13,9 @@ class User(models.Model):
     contact = models.CharField(max_length=255, default='')
     group = models.CharField(max_length=255, default='user')
 
+    class Meta:
+        ordering = ['id']
+
     @classmethod
     def create(cls, email, password, **kwargs):
         pw = password.encode('utf-8')
