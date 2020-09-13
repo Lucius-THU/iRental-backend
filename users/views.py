@@ -8,6 +8,8 @@ from .models import User, SignupRequest
 
 
 def send_verification_code(email):
+    if User.objects.filter(email=email).exists():
+        raise ValueError('email exists')
     code = '%06d' % secrets.randbelow(10 ** 6)
     send_mail('verification code', code, None, [email])
     SignupRequest.objects.create(**{
