@@ -12,6 +12,9 @@ class RentalRequest(models.Model):
     approved = models.BooleanField(default=False)
     rejected = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ['-id']
+
     def todict(self):
         d = modeltodict(self)
         d['user'] = self.user.todict()
@@ -24,6 +27,9 @@ class ProviderRequest(models.Model):
     info = models.TextField()
     approved = models.BooleanField(default=False)
     rejected = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-id']
 
     def todict(self):
         d = modeltodict(self)

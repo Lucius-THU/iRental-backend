@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'reqs.apps.ReqsConfig',
     'records.apps.RecordsConfig',
     'notifications.apps.NotificationsConfig',
+    'stats.apps.StatsConfig',
     # 'django.contrib.admin',
     # 'django.contrib.auth',
     'django.contrib.contenttypes',

@@ -18,6 +18,9 @@ class Equipment(models.Model):
     requesting = models.BooleanField(default=False)
     returning = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ['id']
+
     def __str__(self):
         return self.name
 

@@ -13,15 +13,14 @@ def query(request):
     if not user.isprovider():
         q &= Q(user=user)
     if params.get('provided') == '1':
-        e = Equipment.objects.filter(provider_id=user.id)
-        q &= Q(equipment__in=e)
+        q &= Q(equipment__provider_id=user.id)
     elif not user.isadmin():
         q &= Q(user=user)
     for k, v in params.items():
         if k in ['id', 'user_id', 'equipment_id']:
             q &= Q(**{k: v})
     records = RentalRecord.objects.filter(q)
-    total = len(records)
+    total = records.count()
     page = params.get('page')
     size = params.get('size')
     if page or size:

@@ -7,6 +7,7 @@ apipatterns = [
     path('requests/', include('reqs.urls')),
     path('records/', include('records.urls')),
     path('notifications/', include('notifications.urls')),
+    path('stats/', include('stats.urls')),
 ]
 
 urlpatterns = [

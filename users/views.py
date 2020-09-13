@@ -8,6 +8,8 @@ from .models import User, SignupRequest
 
 
 def send_verification_code(email):
+    if User.objects.filter(email=email).exists():
+        raise ValueError('email exists')
     code = '%06d' % secrets.randbelow(10 ** 6)
     send_mail('verification code', code, None, [email])
     SignupRequest.objects.create(**{
@@ -60,14 +62,21 @@ def logout(request):
 @require('get', 'admin')
 def index(request):
     params = request.GET
+    q = {}
+    for k, v in params.items():
+        if k not in [ f.attname for f in User._meta.fields ]:
+            continue
+        q[k] = v
+    users = User.objects.filter(**q)
+    total = users.count()
     page = params.get('page')
     size = params.get('size')
-    users = User.objects.all()
     if page or size:
         page = int(page or 1)
         size = int(size or 10)
         users = users[(page - 1) * size: page * size]
     return JsonResponse({
+        'total': total,
         'list': list(map(User.todict, users))
     })
 
